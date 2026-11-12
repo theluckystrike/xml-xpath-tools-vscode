@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<catalog>
+  <book id="b1">
+    <title>First</title>
+  <book id="b2">
+    <title>Second</title>
+  </book>
+</catalog>

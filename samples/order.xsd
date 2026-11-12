@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.org/order" xmlns="http://example.org/order" elementFormDefault="qualified">
+<xs:element name="order"><xs:complexType><xs:sequence><xs:element name="customer" type="xs:string"/><xs:element name="line" type="lineType" maxOccurs="unbounded"/></xs:sequence><xs:attribute name="id" type="xs:ID" use="required"/></xs:complexType></xs:element>
+<xs:complexType name="lineType"><xs:sequence><xs:element name="sku" type="xs:string"/><xs:element name="qty" type="xs:positiveInteger"/><xs:element name="price" type="xs:decimal"/></xs:sequence></xs:complexType>
+</xs:schema>

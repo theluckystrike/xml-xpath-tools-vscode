@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2"><Document><name>Office sites</name><Style id="hq"><IconStyle><scale>1.2</scale></IconStyle></Style>
+<Placemark id="p1"><name>Head office</name><styleUrl>#hq</styleUrl><description><![CDATA[<b>Main</b> building, 3rd floor]]></description><Point><coordinates>-0.1276,51.5072,0</coordinates></Point></Placemark>
+<Placemark id="p2"><name>Warehouse</name><Point><coordinates>-2.2426,53.4808,0</coordinates></Point></Placemark>
+<Placemark id="p3"><name>Route</name><LineString><coordinates>-0.1276,51.5072,0 -2.2426,53.4808,0</coordinates></LineString></Placemark>
+</Document></kml>

@@ -1,0 +1,461 @@
+{
+  "name": "zovo-xml-xpath-tools",
+  "displayName": "Format XML & XPath Tools: XML Formatter, Tree View, Minify (Zovo)",
+  "description": "Format XML without touching text, CDATA, comments or xml:space=\"preserve\". Evaluate XPath with namespaces, copy a correct XPath at the cursor, browse a lazy XML tree, minify, check well-formedness. Big files in a worker. Free, offline.",
+  "version": "0.1.0",
+  "publisher": "zovo",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1E2B26",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=18"
+  },
+  "categories": [
+    "Formatters",
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "xml",
+    "format xml",
+    "xml format",
+    "xml formatter",
+    "xml tools",
+    "xpath",
+    "xml tree",
+    "minify xml",
+    "pretty print",
+    "xml pretty print",
+    "copy xpath",
+    "namespaces",
+    "svg",
+    "pom.xml",
+    "soap",
+    "large xml",
+    "offline"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:xml",
+    "onLanguage:xsl",
+    "onLanguage:svg",
+    "onLanguage:xaml"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "xml",
+        "extensions": [
+          ".kml",
+          ".gpx",
+          ".rss",
+          ".atom",
+          ".wsdl",
+          ".dbk",
+          ".xlf",
+          ".xliff",
+          ".resx",
+          ".nuspec",
+          ".props",
+          ".targets",
+          ".xaml"
+        ]
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "xmlXpathTools.tree",
+          "name": "XML Tree",
+          "when": "xmlXpathTools.xmlActive",
+          "icon": "$(list-tree)"
+        },
+        {
+          "id": "xmlXpathTools.results",
+          "name": "XPath Results",
+          "when": "xmlXpathTools.xmlActive || xmlXpathTools.hasResults",
+          "icon": "$(search)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "xmlXpathTools.results",
+        "contents": "Run an XPath 1.0 expression on the open XML file. Results list with line numbers; click one to jump to it.\n[Evaluate XPath](command:xmlXpathTools.evaluate)\nFree and offline. [Rate](https://marketplace.visualstudio.com/items?itemName=zovo.zovo-xml-xpath-tools&ssr=false#review-details) · [More free tools](command:xmlXpathTools.moreViewers) · [Sponsor](command:xmlXpathTools.supportDeveloper)",
+        "when": "config.xmlXpathTools.showSupportLinks"
+      },
+      {
+        "view": "xmlXpathTools.results",
+        "contents": "Run an XPath 1.0 expression on the open XML file. Results list with line numbers; click one to jump to it.\n[Evaluate XPath](command:xmlXpathTools.evaluate)",
+        "when": "!config.xmlXpathTools.showSupportLinks"
+      },
+      {
+        "view": "xmlXpathTools.tree",
+        "contents": "Open an XML file to see its elements here."
+      }
+    ],
+    "commands": [
+      {
+        "command": "xmlXpathTools.evaluate",
+        "title": "Evaluate XPath…",
+        "category": "XML",
+        "icon": "$(search)"
+      },
+      {
+        "command": "xmlXpathTools.copyXPath",
+        "title": "Copy XPath at Cursor",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.copyXPathAs",
+        "title": "Copy XPath at Cursor As…",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.minify",
+        "title": "Minify XML",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.formatFileOnDisk",
+        "title": "Format Large XML File on Disk…",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.showTree",
+        "title": "Show XML Tree",
+        "category": "XML",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "xmlXpathTools.openSample",
+        "title": "Open a Sample XML File",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.revealElement",
+        "title": "Show in Editor",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.copyElementXPath",
+        "title": "Copy XPath",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.revealResult",
+        "title": "Show in Editor",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.copyResultValue",
+        "title": "Copy Value",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.copyResultXPath",
+        "title": "Copy XPath",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.copyAllResults",
+        "title": "Copy All Results",
+        "category": "XML",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "xmlXpathTools.rerun",
+        "title": "Run the XPath Again",
+        "category": "XML",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "xmlXpathTools.getStarted",
+        "title": "Get Started",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.supportDeveloper",
+        "title": "Support the developer",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.moreViewers",
+        "title": "More free tools by Zovo",
+        "category": "XML"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "xmlXpathTools.evaluate",
+          "when": "xmlXpathTools.xmlActive && resourceScheme != output",
+          "group": "navigation@90"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "xmlXpathTools.copyXPath",
+          "when": "xmlXpathTools.xmlActive",
+          "group": "9_cutcopypaste@90"
+        },
+        {
+          "command": "xmlXpathTools.evaluate",
+          "when": "xmlXpathTools.xmlActive",
+          "group": "1_modification@90"
+        },
+        {
+          "command": "xmlXpathTools.minify",
+          "when": "xmlXpathTools.xmlActive && editorHasSelection",
+          "group": "1_modification@91"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "xmlXpathTools.formatFileOnDisk",
+          "when": "resourceExtname =~ /^\\.(xml|svg|xsd|xsl|xslt|kml|gpx|rss|atom|xaml|csproj|config|plist|wsdl)$/i",
+          "group": "7_modification@90"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "xmlXpathTools.evaluate",
+          "when": "view == xmlXpathTools.results",
+          "group": "navigation@1"
+        },
+        {
+          "command": "xmlXpathTools.rerun",
+          "when": "view == xmlXpathTools.results && xmlXpathTools.hasResults",
+          "group": "navigation@2"
+        },
+        {
+          "command": "xmlXpathTools.copyAllResults",
+          "when": "view == xmlXpathTools.results && xmlXpathTools.hasResults",
+          "group": "navigation@3"
+        },
+        {
+          "command": "xmlXpathTools.supportDeveloper",
+          "when": "view == xmlXpathTools.results || view == xmlXpathTools.tree",
+          "group": "9_zovo@1"
+        },
+        {
+          "command": "xmlXpathTools.moreViewers",
+          "when": "view == xmlXpathTools.results || view == xmlXpathTools.tree",
+          "group": "9_zovo@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "xmlXpathTools.copyElementXPath",
+          "when": "view == xmlXpathTools.tree && viewItem == xmlElement",
+          "group": "navigation@1"
+        },
+        {
+          "command": "xmlXpathTools.copyResultValue",
+          "when": "view == xmlXpathTools.results && viewItem == xpathResult",
+          "group": "navigation@1"
+        },
+        {
+          "command": "xmlXpathTools.copyResultXPath",
+          "when": "view == xmlXpathTools.results && viewItem == xpathResult",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "xmlXpathTools.revealElement",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.copyElementXPath",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.revealResult",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.copyResultValue",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.copyResultXPath",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Format XML & XPath Tools",
+      "properties": {
+        "xmlXpathTools.format.attributes": {
+          "type": "string",
+          "enum": [
+            "keep",
+            "oneLine",
+            "onePerLine"
+          ],
+          "enumDescriptions": [
+            "One line, or one attribute per line when the tag already spans several lines.",
+            "All attributes on the tag's line.",
+            "One attribute per line when a tag has 2 or more."
+          ],
+          "default": "keep",
+          "description": "Where attributes go when formatting. Attribute values are never changed."
+        },
+        "xmlXpathTools.format.keepBlankLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep one empty line where the file had one or more between elements."
+        },
+        "xmlXpathTools.minify.removeComments": {
+          "type": "boolean",
+          "default": false,
+          "description": "Minify XML also removes comments between elements."
+        },
+        "xmlXpathTools.xpath.strictNamespaces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Off: a name without a prefix in an XPath also matches elements in a default namespace (pom.xml, SVG, XAML). On: strict XPath 1.0, where such names match only elements with no namespace."
+        },
+        "xmlXpathTools.xpath.maxResults": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 10,
+          "maximum": 100000,
+          "description": "Most results listed in XPath Results. The count shows the full number."
+        },
+        "xmlXpathTools.copyXPathStyle": {
+          "type": "string",
+          "enum": [
+            "indexed",
+            "predicates",
+            "portable"
+          ],
+          "enumDescriptions": [
+            "/project/dependencies/dependency[2]",
+            "/project/dependencies/dependency[@id='core'] when an id, name or key attribute is unique, else the position",
+            "/*[local-name()='project']/... works in any XPath tool without namespace setup"
+          ],
+          "default": "indexed",
+          "description": "Style used by Copy XPath at Cursor and the status bar."
+        },
+        "xmlXpathTools.statusBar.showXPath": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the XPath of the element at the cursor in the status bar. Click it to copy."
+        },
+        "xmlXpathTools.tree.syncWithCursor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Select the element at the cursor in the XML Tree view."
+        },
+        "xmlXpathTools.validate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show well-formedness errors (line and column), undeclared namespace prefixes and entity warnings in Problems."
+        },
+        "xmlXpathTools.maxFileMB": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "Largest file, in MB, for the tree, XPath and checks. Format Document works on any file VS Code opens."
+        },
+        "xmlXpathTools.askForRating": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask for a Marketplace rating after 2 files worked without an error, in 2 sessions at least 4 hours apart. \"Later\" asks one more time after 7 days, \"No thanks\" never asks again. Nothing is sent anywhere."
+        },
+        "xmlXpathTools.showSupportLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Rate, More free tools and Sponsor links in the XPath Results view. Nothing is sent anywhere."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "xmlXpathTools.start",
+        "title": "Get started with Format XML & XPath Tools",
+        "description": "Format XML safely, run XPath and copy the XPath at the cursor.",
+        "steps": [
+          {
+            "id": "format",
+            "title": "Format or minify XML",
+            "description": "Open an XML file and run Format Document (Shift+Alt+F, or Shift+Option+F on a Mac). Text, CDATA, comments and xml:space=\"preserve\" stay as they are.\n[Open a sample file](command:xmlXpathTools.openSample)",
+            "media": {
+              "markdown": "walkthrough/format.md"
+            },
+            "completionEvents": [
+              "onCommand:xmlXpathTools.openSample"
+            ]
+          },
+          {
+            "id": "xpath",
+            "title": "Evaluate XPath",
+            "description": "Click the search button in the editor title or run XML: Evaluate XPath. Results list with line numbers; click one to jump to it.\n[Evaluate XPath](command:xmlXpathTools.evaluate)",
+            "media": {
+              "markdown": "walkthrough/xpath.md"
+            },
+            "completionEvents": [
+              "onCommand:xmlXpathTools.evaluate"
+            ]
+          },
+          {
+            "id": "copy",
+            "title": "Copy the XPath at the cursor",
+            "description": "The status bar shows the XPath of the element at the cursor. Click it to copy it with positions, with id or name attributes, or in a portable form.\n[Copy XPath at Cursor As…](command:xmlXpathTools.copyXPathAs)",
+            "media": {
+              "markdown": "walkthrough/copy.md"
+            }
+          },
+          {
+            "id": "tree",
+            "title": "Browse the XML tree",
+            "description": "The XML Tree view in the Explorer follows the cursor. Big elements open in groups of 500, so large files stay fast.\n[Show XML Tree](command:xmlXpathTools.showTree)",
+            "media": {
+              "markdown": "walkthrough/tree.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node scripts/build.js --production",
+    "pretest": "node scripts/build.js",
+    "test": "node --test test/*.test.js",
+    "vscode:prepublish": "node scripts/build.js --production",
+    "package": "node scripts/build.js --production && npx -y @vscode/vsce@3 package --no-dependencies -o dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theluckystrike/xml-xpath-tools-vscode"
+  },
+  "homepage": "https://github.com/theluckystrike/xml-xpath-tools-vscode#readme",
+  "bugs": {
+    "url": "https://github.com/theluckystrike/xml-xpath-tools-vscode/issues"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.8",
+    "xpath": "0.0.36"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.90.0",
+    "esbuild": "^0.24.2"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/theluckystrike"
+  }
+}

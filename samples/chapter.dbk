@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" xml:id="ch-install"><title>Installing the service</title>
+<para>Run the installer as an administrator. The <command>setup</command> program asks for a <emphasis>data folder</emphasis> and a port.</para>
+<programlisting language="shell" xml:space="preserve">./setup --data /srv/orders \
+        --port 8080
+</programlisting>
+<section xml:id="sec-config"><title>Configuration</title><para>Settings live in <filename>orders.conf</filename>. See <link xlink:href="https://example.org/docs">the manual</link>.</para>
+<itemizedlist><listitem><para>port</para></listitem><listitem><para>data folder</para></listitem></itemizedlist></section>
+</chapter>

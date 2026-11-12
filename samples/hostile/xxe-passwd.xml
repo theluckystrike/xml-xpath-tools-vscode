@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE order [
+  <!ENTITY secret SYSTEM "file:///etc/passwd">
+  <!ENTITY remote SYSTEM "http://127.0.0.1:9/evil.dtd">
+]>
+<order id="A-1"><customer>&secret;</customer><note>&remote;</note><total>10</total></order>
