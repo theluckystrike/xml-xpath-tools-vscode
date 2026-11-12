@@ -280,7 +280,7 @@
         {
           "command": "xmlXpathTools.zovoPro.compare",
           "when": "resourceExtname =~ /^\\.(xml|xsd|xsl|xslt|svg|xaml|csproj|vbproj|fsproj|props|targets|nuspec|resx|kml|gpx|rss|atom|wsdl|dbk|xlf|xliff|plist|config|pom)$/i && config.xmlXpathTools.showProTools",
-          "group": "3_compare@9"
+          "group": "zovoPro@1"
         },
         {
           "command": "xmlXpathTools.zovoPro.xpathFolder",
