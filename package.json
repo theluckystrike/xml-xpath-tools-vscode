@@ -1,8 +1,8 @@
 {
   "name": "zovo-xml-xpath-tools",
-  "displayName": "Format XML & XPath Tools: XML Formatter, Tree View, Minify (Zovo)",
-  "description": "Format XML without touching text, CDATA, comments or xml:space=\"preserve\". Evaluate XPath with namespaces, copy a correct XPath at the cursor, browse a lazy XML tree, minify, check well-formedness. Big files in a worker. Free, offline.",
-  "version": "0.1.0",
+  "displayName": "XML Formatter & XPath Tools",
+  "description": "XML formatter that changes only whitespace between tags: text, CDATA, comments and xml:space=\"preserve\" stay as written. XPath 1.0 with namespaces, Copy XPath at the cursor, a lazy XML tree, minify and well-formedness checks. Free, offline.",
+  "version": "0.1.1",
   "publisher": "zovo",
   "license": "MIT",
   "icon": "icon.png",
@@ -21,23 +21,11 @@
     "Other"
   ],
   "keywords": [
-    "xml",
-    "format xml",
-    "xml format",
     "xml formatter",
-    "xml tools",
+    "format xml",
     "xpath",
     "xml tree",
-    "minify xml",
-    "pretty print",
-    "xml pretty print",
-    "copy xpath",
-    "namespaces",
-    "svg",
-    "pom.xml",
-    "soap",
-    "large xml",
-    "offline"
+    "minify xml"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -181,6 +169,26 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "xmlXpathTools.xpathFolder",
+        "title": "Run XPath on Every XML File in a Folder (Pro)",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.formatFolder",
+        "title": "Format All XML Files in a Folder (Pro)",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.compareIgnoringFormat",
+        "title": "Compare Two XML Files Ignoring Formatting (Pro)",
+        "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.xpathFolderFromResults",
+        "title": "Run This XPath on Every XML File in a Folder (Pro)",
+        "category": "XML"
+      },
+      {
         "command": "xmlXpathTools.getStarted",
         "title": "Get Started",
         "category": "XML"
@@ -194,6 +202,48 @@
         "command": "xmlXpathTools.moreViewers",
         "title": "More free tools by Zovo",
         "category": "XML"
+      },
+      {
+        "command": "xmlXpathTools.zovoPro.xpathFolder",
+        "title": "Zovo Pro: Run XPath on Every XML File in a Folder"
+      },
+      {
+        "command": "xmlXpathTools.zovoPro.formatFolder",
+        "title": "Zovo Pro: Format All XML Files in a Folder"
+      },
+      {
+        "command": "xmlXpathTools.zovoPro.compare",
+        "title": "Zovo Pro: Compare Two XML Files Ignoring Formatting"
+      },
+      {
+        "command": "xmlXpathTools.getPro",
+        "title": "Get Zovo Pro (USD 19 once, all 22 Zovo extensions)",
+        "category": "Zovo Pro"
+      },
+      {
+        "command": "xmlXpathTools.payWithPayPal",
+        "title": "Pay for Zovo Pro with PayPal (USD 19, team of 5 USD 59)",
+        "category": "Zovo Pro"
+      },
+      {
+        "command": "xmlXpathTools.unlockWithSponsors",
+        "title": "I already paid: unlock with GitHub Sponsors",
+        "category": "Zovo Pro"
+      },
+      {
+        "command": "xmlXpathTools.enterLicenseKey",
+        "title": "Enter Zovo Pro license key",
+        "category": "Zovo Pro"
+      },
+      {
+        "command": "xmlXpathTools.removeLicense",
+        "title": "Remove Zovo Pro from this editor",
+        "category": "Zovo Pro"
+      },
+      {
+        "command": "xmlXpathTools.payByCard",
+        "title": "Pay for Zovo Pro by card (USD 19)",
+        "category": "Zovo Pro"
       }
     ],
     "menus": {
@@ -226,6 +276,21 @@
           "command": "xmlXpathTools.formatFileOnDisk",
           "when": "resourceExtname =~ /^\\.(xml|svg|xsd|xsl|xslt|kml|gpx|rss|atom|xaml|csproj|config|plist|wsdl)$/i",
           "group": "7_modification@90"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.compare",
+          "when": "resourceExtname =~ /^\\.(xml|xsd|xsl|xslt|svg|xaml|csproj|vbproj|fsproj|props|targets|nuspec|resx|kml|gpx|rss|atom|wsdl|dbk|xlf|xliff|plist|config|pom)$/i && config.xmlXpathTools.showProTools",
+          "group": "3_compare@9"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.xpathFolder",
+          "when": "explorerResourceIsFolder && config.xmlXpathTools.showProTools",
+          "group": "zovoPro@1"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.formatFolder",
+          "when": "explorerResourceIsFolder && config.xmlXpathTools.showProTools",
+          "group": "zovoPro@1"
         }
       ],
       "view/title": [
@@ -292,11 +357,27 @@
         {
           "command": "xmlXpathTools.copyResultXPath",
           "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.xpathFolder",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.formatFolder",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.zovoPro.compare",
+          "when": "false"
+        },
+        {
+          "command": "xmlXpathTools.xpathFolderFromResults",
+          "when": "false"
         }
       ]
     },
     "configuration": {
-      "title": "Format XML & XPath Tools",
+      "title": "XML Formatter & XPath Tools",
       "properties": {
         "xmlXpathTools.format.attributes": {
           "type": "string",
@@ -375,19 +456,24 @@
         "xmlXpathTools.askForRating": {
           "type": "boolean",
           "default": true,
-          "description": "Ask for a Marketplace rating after 2 files worked without an error, in 2 sessions at least 4 hours apart. \"Later\" asks one more time after 7 days, \"No thanks\" never asks again. Nothing is sent anywhere."
+          "description": "Ask once for a Marketplace rating, after 2 files worked without an error at least 30 minutes apart (never in the first 2 minutes of a window, never after an error). \"Later\" asks one more time after 7 days, \"No thanks\" never asks again. Nothing is sent anywhere."
         },
         "xmlXpathTools.showSupportLinks": {
           "type": "boolean",
           "default": true,
           "description": "Show the Rate, More free tools and Sponsor links in the XPath Results view. Nothing is sent anywhere."
+        },
+        "xmlXpathTools.showProTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Zovo Pro line at the end of XPath Results (\"Run this XPath on a folder\") and in the Explorer right-click menu. The free tools never change."
         }
       }
     },
     "walkthroughs": [
       {
         "id": "xmlXpathTools.start",
-        "title": "Get started with Format XML & XPath Tools",
+        "title": "Get started with XML Formatter & XPath Tools",
         "description": "Format XML safely, run XPath and copy the XPath at the cursor.",
         "steps": [
           {
@@ -427,6 +513,14 @@
             "media": {
               "markdown": "walkthrough/tree.md"
             }
+          },
+          {
+            "id": "zovo-related",
+            "title": "Files that go with this one",
+            "description": "If your project also has PDF files or spreadsheets and CSV files, these free Zovo extensions open them. A link opens the extension page, and you choose there whether to install it.\n[PDF Viewer](command:extension.open?%5B%22zovo.pdf-viewer-dark%22%5D)\n[XLSX and CSV Viewer](command:extension.open?%5B%22zovo.table-viewer-vscode%22%5D)",
+            "media": {
+              "markdown": "walkthrough/related.md"
+            }
           }
         ]
       }
@@ -456,6 +550,6 @@
     "esbuild": "^0.24.2"
   },
   "sponsor": {
-    "url": "https://github.com/sponsors/theluckystrike"
+    "url": "https://github.com/sponsors/theluckystrike/sponsorships?tier_id=679878"
   }
 }

@@ -1,14 +1,10 @@
-# Format XML & XPath Tools (XML Formatter, Tree View, Minify)
+# XML Formatter & XPath Tools
 
-![License MIT](https://img.shields.io/badge/license-MIT-blue)
-![Works offline](https://img.shields.io/badge/network-none-green)
-![VS Code 1.90+](https://img.shields.io/badge/VS%20Code-1.90%2B-007ACC)
+XML formatter for VS Code that changes only the whitespace between tags, with XPath 1.0 on the file's own namespaces and a Copy XPath that selects the element under the cursor. Free, no sign-in, works offline.
 
-Format XML without changing its text, run XPath with the namespaces in the file, and copy an XPath that selects the element under the cursor. Free, no sign-in, works offline.
+![XML Formatter & XPath Tools: a pom.xml with XPath Results, the XML Tree and the XPath at the cursor in the status bar](images/xml-formatter-xpath.png)
 
-![HERO_ALT](https://github.com/theluckystrike/xml-xpath-tools-vscode/raw/HEAD/images/pom-xpath-tree.png)
-
-*HERO_CAPTION*
+Free:
 
 - Format Document and Minify XML change only the whitespace between tags. Text, CDATA, comments, `xml:space="preserve"` and attribute values stay byte for byte, and a second format changes nothing.
 - XPath 1.0 runs on the file's own prefixes, and plain names also match a default namespace, so `//dependency/artifactId` works in a `pom.xml`. Results list with line numbers; click one to jump to it.
@@ -16,9 +12,11 @@ Format XML without changing its text, run XPath with the namespaces in the file,
 - Big files parse in a background thread. In the tests, a 49 MB file with about 1 million elements formatted in 1.6 seconds, and a 13.5 MB file on one line in 0.7 seconds, while the editor's thread never paused for more than 0.1 seconds.
 - The XML Tree view in the Explorer follows the cursor, and Problems lists well-formedness errors with their line and column.
 
+Zovo Pro: USD 19 once, for every Zovo extension. Three Pro tools, each with 3 free tries on your computer: Run XPath on every XML file in a folder (results as CSV, JSON or a Markdown report), Format all XML files in a folder, and Compare two XML files ignoring formatting and attribute order.
+
 ## Quick start
 
-1. Install Format XML & XPath Tools.
+1. Install XML Formatter & XPath Tools.
 2. Open an XML file and press Shift+Alt+F (Shift+Option+F on a Mac). If you have more than one XML formatter, VS Code asks which one to use.
 3. Click the search button in the editor title to run an XPath, or click the XPath in the status bar to copy it.
 
@@ -26,17 +24,12 @@ Format XML without changing its text, run XPath with the namespaces in the file,
 
 ## Why this one
 
-People who format XML and use XPath in VS Code report the same problems again and again. Each row links the public report and says what this extension does about it. The numbers come from the tests in `test/` and the release check in a real VS Code (`scripts/e2e-vscode.mjs`).
-
-| Reported problem | What this extension does |
+| Common problem | What this extension does |
 |---|---|
-| Formatting a large or single-line file never finishes, or blocks the editor ([#266](https://github.com/DotJoshJohnson/vscode-xml/issues/266), [#309](https://github.com/DotJoshJohnson/vscode-xml/issues/309), [#336](https://github.com/DotJoshJohnson/vscode-xml/issues/336), [review, May 2026](https://marketplace.visualstudio.com/items?itemName=DotJoshJohnson.xml&ssr=false#review-details)) | Formatting, the tree and XPath run in a worker thread, so the editor keeps working. Measured in `test/large.test.js` and `test/format.test.js`: 49 MB (1,049,601 elements) formatted in 1.6 s and indexed in 1.1 s; a 13.5 MB single-line file formatted in 0.7 s. Files over 50 MB, which VS Code does not pass to extensions, format on disk. |
-| "Get current XPath" returns a path that does not exist, and Evaluate gives no output ([#310](https://github.com/DotJoshJohnson/vscode-xml/issues/310), [#377](https://github.com/DotJoshJohnson/vscode-xml/issues/377), [reviews, 2023 and 2024](https://marketplace.visualstudio.com/items?itemName=DotJoshJohnson.xml&ssr=false#review-details)) | The copied path is checked in the tests: for every sampled element in 22 files (11 samples and 11 real files such as an Apache `pom.xml`, a CycloneDX XSD, Android, XLIFF and .resx files), each of the 3 styles selects that one element and nothing else. XPath errors say what is wrong, for example which prefixes the file declares. |
-| Formatting changes content: a space in `<t> </t>` is lost, `xml:space="preserve"` is ignored, spaces pile up before CDATA, comment indentation grows on every save ([#386](https://github.com/DotJoshJohnson/vscode-xml/issues/386), [#303](https://github.com/DotJoshJohnson/vscode-xml/issues/303), [#381](https://github.com/DotJoshJohnson/vscode-xml/issues/381), [#365](https://github.com/DotJoshJohnson/vscode-xml/issues/365)) | Text, CDATA, comments and preserved content are copied as they are. Each of those four reports is a test case in `test/format.test.js`, and every sample file is formatted twice to check that the second run changes nothing. |
-| A broken file gets no message, or Format inserts tags of its own ([#335](https://github.com/DotJoshJohnson/vscode-xml/issues/335), [review, 2018](https://marketplace.visualstudio.com/items?itemName=DotJoshJohnson.xml&ssr=false#review-details)) | A file that is not well formed is never changed. Format shows the error with its line and column, and Problems lists it as you type. |
-| The tree view does not show up ([#367](https://github.com/DotJoshJohnson/vscode-xml/issues/367)) | XML Tree appears in the Explorer whenever an XML file is active, and "XML: Show XML Tree" opens it. |
-
-Zovo makes and maintains this extension on its own. It does not replace, and is not affiliated with, any other XML extension.
+| Formatting a large or single-line file never finishes, or blocks the editor | Formatting, the tree and XPath run in a worker thread, so the editor keeps working. Measured in `test/large.test.js` and `test/format.test.js`: 49 MB (1,049,601 elements) formatted in 1.6 s and indexed in 1.1 s; a 13.5 MB single-line file formatted in 0.7 s. Files over 50 MB, which VS Code does not pass to extensions, format on disk. |
+| A copied XPath selects nothing, or Evaluate gives no output | The copied path is checked in the tests: for every sampled element in 22 files (11 samples and 11 real files such as an Apache `pom.xml`, a CycloneDX XSD, Android, XLIFF and .resx files), each of the 3 styles selects that one element and nothing else. XPath errors say what is wrong, for example which prefixes the file declares. |
+| Formatting changes content: a space in `<t> </t>` is lost, `xml:space="preserve"` is ignored, spaces pile up before CDATA, comment indentation grows on every save | Text, CDATA, comments and preserved content are copied as they are. Each of those four cases is a test in `test/format.test.js`, and every sample file is formatted twice to check that the second run changes nothing. |
+| A broken file gets no message, or Format inserts tags of its own | A file that is not well formed is never changed. Format shows the error with its line and column, and Problems lists it as you type. |
 
 ## Format and minify
 
@@ -70,6 +63,14 @@ With the cursor on an attribute, the path ends in `/@name`. Positions count only
 - Entities are never expanded and DTDs are never loaded. An entity bomb ("billion laughs") is measured, not expanded, and gets a warning; an external entity such as `file:///etc/passwd` is not read.
 - Nothing changes your settings. Format runs only when you ask for it or when you turn on `editor.formatOnSave` yourself.
 
+## Zovo Pro tools
+
+Each tool has 3 free tries on this computer. A try counts only when the tool gives you a result; Escape, an XPath typo or a folder with no XML files uses none. After that, Zovo Pro (USD 19 once) turns them on in every Zovo extension. Find them in the Command Palette, in the Explorer right-click menu ("Zovo Pro: ..." on folders and XML files), and at the end of XPath Results.
+
+- Run XPath on every XML file in a folder: one XPath, every `.xml`, `.xsd`, `.csproj`, `.svg`, `.kml` and similar file under a folder, each with its own namespace prefixes. The results open as CSV (file, line, kind, name, value) for a spreadsheet, as JSON for a script, or as a Markdown report for a review. XPath Results offers it for the expression you just ran.
+- Format all XML files in a folder: the same safe formatter as Format Document checks every XML file, says how many would change, then formats them all (undo works in each file) or opens a Markdown report of what would change, for a review or a CI check. Files that are not well formed are listed and left alone.
+- Compare two XML files ignoring formatting: indentation, line breaks, attribute order, quote style, `<a/>` versus `<a></a>` and CDATA versus escaped text are ignored, so VS Code's diff shows only real changes in names, values, text and element order. Select two files in the Explorer, or compare the open file with another one.
+
 ## Settings
 
 | Setting | Default | What it does |
@@ -84,6 +85,7 @@ With the cursor on an attribute, the path ends in `/@name`. Positions count only
 | `xmlXpathTools.tree.syncWithCursor` | `true` | The tree follows the cursor |
 | `xmlXpathTools.validate` | `true` | Well-formedness errors in Problems |
 | `xmlXpathTools.maxFileMB` | `60` | Largest file for the tree, XPath and checks |
+| `xmlXpathTools.showProTools` | `true` | The Zovo Pro line in XPath Results and the Explorer menu |
 
 ## Limits
 
@@ -94,17 +96,22 @@ With the cursor on an attribute, the path ends in `/@name`. Positions count only
 
 ## Support Zovo
 
-Zovo extensions are free, with no ads and no tracking. They are made by [theluckystrike](https://github.com/theluckystrike) on GitHub. If this one saves you time, you can support the work:
+Zovo Pro: USD 19 once, every Zovo viewer. [Get Zovo Pro on GitHub Sponsors](https://github.com/sponsors/theluckystrike/sponsorships?tier_id=679878) to turn on the Pro tools in this extension and in the other Zovo extensions you use. The free features stay free.
+
+Zovo extensions have no ads and no tracking. They are made by [theluckystrike](https://github.com/theluckystrike) on GitHub. You can also support the work with no Pro:
 
 - [Sponsor on GitHub](https://github.com/sponsors/theluckystrike)
+- [PayPal](https://www.paypal.com/paypalme/najzzz)
 - [Follow theluckystrike on GitHub](https://github.com/theluckystrike)
+
+### Need your format supported?
+
+Open a [format request](https://github.com/theluckystrike/xml-xpath-tools-vscode/issues/new?template=format-request.yml) with a sample file, and I reply there whether it can be done. For USD 299 once, through [this GitHub Sponsors tier](https://github.com/sponsors/theluckystrike/sponsorships?tier_id=679995), I add your file format or a missing feature to this extension, with tests, within 7 days.
 
 ## More tools by Zovo
 
-- [Large JSON Viewer, JSON Browser & JSON Tree](https://marketplace.visualstudio.com/items?itemName=zovo.zovo-json-tree-viewer) shows large JSON files as a searchable tree, copies JSONPath and turns arrays of objects into a table.
-- [HAR Viewer & HAR File Analyzer (HTTP Archive, Network Log)](https://marketplace.visualstudio.com/items?itemName=zovo.zovo-har-viewer) opens HAR files from browser DevTools with a timing waterfall, filters and a redacted copy for sharing.
-- [Hex Viewer & Binary Viewer, Hex Editor (Large Files)](https://marketplace.visualstudio.com/items?itemName=zovo.zovo-hex-viewer) Hex viewer, binary viewer and hex editor for VS Code that opens files of any size (4 GB and more) in under a second. Insert and delete bytes, compare two files byte by byte, go to offset, find hex or text, a data inspector, copy as C array or base64. Free, works offline.
-- [JSONL Viewer, Large JSONL Table & NDJSON Viewer](https://marketplace.visualstudio.com/items?itemName=zovo.zovo-jsonl-viewer) opens JSONL and NDJSON files as a table, as records or as a chat view.
-- [SQLite DB Viewer & SQLite Viewer, Database Viewer (Read-Only)](https://marketplace.visualstudio.com/items?itemName=zovo.sqlite-table-viewer) browses SQLite tables read-only and runs SELECT queries.
+- [PDF Viewer & PDF Reader to Read and View PDF (Dark Mode)](https://marketplace.visualstudio.com/items?itemName=zovo.pdf-viewer-dark) reads PDFs with a real dark mode, search, an outline and thumbnails.
+- [XLSX Viewer, Excel Viewer, CSV Viewer & Parquet Viewer (XLS, CSV Preview)](https://marketplace.visualstudio.com/items?itemName=zovo.table-viewer-vscode) opens CSV, TSV, Excel and Parquet files as a sortable, filterable table.
+- [DOCX Viewer & ODT Viewer, Word Document Preview (Dark Mode)](https://marketplace.visualstudio.com/items?itemName=zovo.docx-viewer-vscode) previews Word and ODT files with dark mode, an outline and search.
 
 See [all Zovo extensions on the Marketplace](https://marketplace.visualstudio.com/publishers/zovo).

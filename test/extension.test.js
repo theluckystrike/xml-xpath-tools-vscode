@@ -12,24 +12,28 @@ test('engines floor for Cursor and Windsurf', () => {
   assert.strictEqual(pkg.devDependencies['@types/vscode'], '~1.90.0');
 });
 
-test('display name has every word of the target phrases and is not a rival name', () => {
-  const name = pkg.displayName.toLowerCase();
-  for (const phrase of ['format xml', 'xml format', 'xml formatter', 'xml tools', 'xpath']) {
-    for (const w of phrase.split(' ')) assert.ok(new RegExp(`\\b${w}\\b`).test(name), `${w} missing`);
-  }
+test('display name: the phrase "xml formatter" first, 30 characters or less, not a rival name', () => {
+  assert.ok(pkg.displayName.length <= 30, pkg.displayName);
+  assert.ok(pkg.displayName.toLowerCase().startsWith('xml formatter'), pkg.displayName);
+  assert.ok(pkg.description.toLowerCase().startsWith('xml formatter'), pkg.description);
+  assert.strictEqual(pkg.keywords.length, 5);
   for (const rival of ['XML Tools', 'XML Format', 'Pretty XML', 'XPath Tester', 'XML Formatter']) {
     assert.notStrictEqual(pkg.displayName.toLowerCase(), rival.toLowerCase());
-    assert.ok(!pkg.displayName.startsWith(rival + ' '), 'starts with a rival name: ' + rival);
   }
+  assert.ok(!/xml tools/i.test(pkg.displayName), 'contains a rival name');
 });
 
-test('the bundles contain no network code', () => {
+test('the bundles contain no network code (Zovo Pro unlock rails are the only fetch, on a click)', () => {
   for (const f of ['extension.js', 'worker.js']) {
     const js = fs.readFileSync(path.join(root, 'dist', f), 'utf8');
-    for (const bad of [/require\(["'](https?|net|tls|dgram|http2)["']\)/, /\bfetch\(/, /XMLHttpRequest/, /WebSocket/]) {
+    for (const bad of [/require\(["'](https?|net|tls|dgram|http2)["']\)/, /XMLHttpRequest/, /WebSocket/]) {
       assert.ok(!bad.test(js), `${f} has ${bad}`);
     }
   }
+  assert.ok(!/\bfetch\(/.test(fs.readFileSync(path.join(root, 'dist', 'worker.js'), 'utf8')), 'worker has fetch');
+  // product source (not the shared license module): no fetch at all
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? (e.name === 'license' ? [] : walk(path.join(d, e.name))) : [path.join(d, e.name)]));
+  for (const f of walk(path.join(root, 'src')).filter((x) => x.endsWith('.js'))) assert.ok(!/\bfetch\(/.test(fs.readFileSync(f, 'utf8')), f);
 });
 
 test('every command in menus is declared, every setting has a description', () => {

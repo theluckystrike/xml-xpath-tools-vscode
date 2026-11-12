@@ -8,6 +8,10 @@ const { elementAt, children } = require('./core/index');
 const { xpathFor } = require('./core/xpathgen');
 const { createRatingPrompt } = require('./rate');
 const { registerSupport } = require('./support');
+const { createPro } = require('./pro');
+const { createProTools } = require('./protools');
+const { createReach, runAs } = require('./reach');
+const reachConfig = require('./reach-config');
 
 const EXT_ID = 'zovo.zovo-xml-xpath-tools';
 const S = 'xmlXpathTools';
@@ -190,8 +194,17 @@ class XmlTree {
     this.emitter = new vscode.EventEmitter(); this.onDidChangeTreeData = this.emitter.event;
   }
   setDoc(doc, ix) {
-    this.doc = doc; this.ix = ix; this.groups.clear(); this.kids.clear();
+    // Rows are { i } objects, never bare numbers: VS Code treats a parent 0 (the root element) as "no parent", so
+    // revealing an element under the root failed and left the tree empty. A new index means new element numbers: a new
+    // generation gives every row a new id, so VS Code never maps an old row handle to a different element.
+    this.doc = doc; this.ix = ix; this.groups.clear(); this.kids.clear(); this.nodes = new Map(); this.gen = (this.gen || 0) + 1; this.changedAt = Date.now();
     this.emitter.fire();
+  }
+  node(i) {
+    if (!this.nodes) this.nodes = new Map();
+    let n = this.nodes.get(i);
+    if (!n) { n = { i }; this.nodes.set(i, n); }
+    return n;
   }
   kidsOf(i) {
     let k = this.kids.get(i);
@@ -210,32 +223,35 @@ class XmlTree {
   }
   getChildren(el) {
     if (!this.ix) return [];
-    if (el && el.group) return this.kidsOf(el.parent).slice(el.from, el.to);
-    const p = el === undefined ? -1 : el;
+    if (el && el.group) return this.kidsOf(el.parent).slice(el.from, el.to).map(i => this.node(i));
+    const p = el === undefined ? -1 : el.i;
     const k = this.kidsOf(p);
-    if (k.length <= CHUNK) return k;
+    if (k.length <= CHUNK) return k.map(i => this.node(i));
     const out = [];
     for (let f = 0; f < k.length; f += CHUNK) out.push(this.group(p, f));
     return out;
   }
   getParent(el) {
     if (!this.ix) return undefined;
-    if (el && el.group) return el.parent < 0 ? undefined : el.parent;
-    const p = this.ix.parent[el];
+    if (el && el.group) return el.parent < 0 ? undefined : this.node(el.parent);
+    const p = this.ix.parent[el.i];
     const sibs = this.kidsOf(p);
-    if (sibs.length > CHUNK) { const pos = sibs.indexOf(el); return this.group(p, Math.floor(pos / CHUNK) * CHUNK); }
-    return p < 0 ? undefined : p;
+    if (sibs.length > CHUNK) { const pos = sibs.indexOf(el.i); return this.group(p, Math.floor(pos / CHUNK) * CHUNK); }
+    return p < 0 ? undefined : this.node(p);
   }
-  getTreeItem(el) {
+  getTreeItem(row) {
     const ix = this.ix;
-    if (el.group) {
-      const it = new vscode.TreeItem(`[${el.from + 1} … ${el.to}]`, vscode.TreeItemCollapsibleState.Collapsed);
-      it.description = `${el.to - el.from} of ${this.kidsOf(el.parent).length} elements`;
+    if (row.group) {
+      const it = new vscode.TreeItem(`[${row.from + 1} … ${row.to}]`, vscode.TreeItemCollapsibleState.Collapsed);
+      it.id = `${this.gen}:g${row.parent}:${row.from}`;
+      it.description = `${row.to - row.from} of ${this.kidsOf(row.parent).length} elements`;
       return it;
     }
+    const el = row.i;
     const name = ix.names[ix.nameId[el]];
     const kids = ix.childCount[el];
     const it = new vscode.TreeItem(name, kids ? (ix.parent[el] < 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed) : vscode.TreeItemCollapsibleState.None);
+    it.id = `${this.gen}:${el}`;
     const bits = [];
     if (ix.keyName[el]) bits.push(`${ix.keyName[el]}="${ix.keyValue[el].length > 40 ? ix.keyValue[el].slice(0, 39) + '…' : ix.keyValue[el]}"`);
     if (ix.preview[el]) bits.push(ix.preview[el].length > 50 ? ix.preview[el].slice(0, 49) + '…' : ix.preview[el]);
@@ -256,6 +272,14 @@ class Results {
   set(doc, ix, expr, items) { this.doc = doc; this.ix = ix; this.expr = expr; this.items = items; this.emitter.fire(); }
   getChildren(el) { return el ? [] : this.items; }
   getTreeItem(r) {
+    if (r.pro) {
+      const it = new vscode.TreeItem(r.pro);
+      it.description = r.description;
+      it.iconPath = new vscode.ThemeIcon('folder-library');
+      it.tooltip = 'Zovo Pro: runs this XPath on every XML file in a folder and opens the results as CSV, JSON or a Markdown report. Turn this line off with the setting xmlXpathTools.showProTools.';
+      it.command = { command: `${S}.xpathFolderFromResults`, title: 'Run this XPath on a folder' };
+      return it;
+    }
     if (r.note) {
       const it = new vscode.TreeItem(r.note);
       it.iconPath = new vscode.ThemeIcon(r.icon || 'info');
@@ -318,7 +342,7 @@ function shortPath(p, max = 60) { return p.length <= max ? p : '…' + p.slice(p
 // ---------------------------------------------------------------- activate
 function activate(context) {
   workerPath = path.join(context.extensionPath, 'dist', 'worker.js');
-  rating = createRatingPrompt({ vscode, context, extensionId: EXT_ID, section: S, name: 'XML Formatter & XPath' });
+  rating = createRatingPrompt({ vscode, context, extensionId: EXT_ID, section: S, name: 'XML Formatter & XPath Tools' });
   registerSupport({ vscode, context, prefix: S, selfId: EXT_ID });
   const client = new WorkerClient(workerPath);
   const store = new IndexStore(client);
@@ -431,7 +455,10 @@ function activate(context) {
       status.tooltip = `XPath at the cursor:\n${p}\n\nClick to copy it (3 styles).`;
       status.show();
       if (treeView.visible && cfg().get('tree.syncWithCursor', true) && tree.doc === ed.document && tree.ix === ix) {
-        treeView.reveal(i, { select: true, focus: false, expand: false }).then(undefined, () => {});
+        // right after a refresh VS Code may not have the new rows yet: reveal a moment later
+        const wait = Math.max(0, 400 - (Date.now() - (tree.changedAt || 0)));
+        const go = () => { if (tree.ix === ix && treeView.visible) treeView.reveal(tree.node(i), { select: true, focus: false, expand: false }).then(undefined, () => {}); };
+        if (wait) setTimeout(go, wait); else go();
       }
     }, 120);
   }
@@ -505,6 +532,10 @@ function activate(context) {
       ratingSuccess(doc);
     }
     for (const n of (r.notes || [])) items.push({ note: n, icon: 'shield' });
+    if (r.ok && cfg().get('showProTools', true)) {
+      const n = pro.left('xpathFolder');
+      items.push({ pro: 'Run this XPath on every XML file in a folder', description: pro.licensed ? 'Zovo Pro' : `Zovo Pro · ${n === 3 ? '3 free tries' : n === 1 ? '1 try left' : n + ' tries left'}` });
+    }
     results.set(doc, ix, expr, items);
     vscode.commands.executeCommand('setContext', `${S}.hasResults`, true);
     await vscode.commands.executeCommand(`${S}.results.focus`);
@@ -573,6 +604,38 @@ function activate(context) {
   }
 
   const reg = (id, fn) => context.subscriptions.push(vscode.commands.registerCommand(`${S}.${id}`, fn));
+
+  // ---- Zovo Pro (src/pro.js, src/protools.js): 3 tools, 3 free tries each. Nothing about Pro runs or shows on open.
+  // REACH1: this listing has no webview, so no toolbar row. The tools sit in the Explorer right-click menu ("Zovo Pro:
+  // <tool>": folders for the 2 folder tools, XML files for Compare) and as one line at the end of XPath Results after
+  // an XPath ran ("Run this XPath on every XML file in a folder"). Explorer runs tag a card link <install id>_ctx,
+  // the XPath Results line <install id>_toolbar. The setting xmlXpathTools.showProTools hides both.
+  const pro = createPro({ vscode, context, prefix: S });
+  let proClient = null;
+  context.subscriptions.push({ dispose: () => { if (proClient) proClient.terminate(); } });
+  const proTools = createProTools({
+    vscode, pro,
+    request: msg => { if (!proClient) proClient = new WorkerClient(workerPath); return proClient.request(msg); },
+    formatOptions: text => ({ indent: ' '.repeat(Number(vscode.workspace.getConfiguration('editor').get('tabSize', 2)) || 2), eol: text.includes('\r\n') ? '\r\n' : '\n', attributes: cfg().get('format.attributes', 'keep'), keepBlankLines: cfg().get('format.keepBlankLines', true) }),
+    maxChars: limitChars,
+    xpathOptions: () => ({ strictNamespaces: cfg().get('xpath.strictNamespaces', false), maxResults: cfg().get('xpath.maxResults', 5000) }),
+    lastExpr: () => (context.workspaceState.get(`${S}.history`, [])[0] || ''),
+  });
+  proTools.register(context);
+  const reach = createReach({ vscode, context, ...reachConfig, licensed: () => pro.licensed, shown: () => cfg().get('showProTools', true) });
+  reach.registerCtx();
+  const proCmd = fn => async (...a) => {
+    try { return await fn(...a); } catch (e) { vscode.window.showErrorMessage(`XML Pro tool stopped: ${e && e.message ? e.message : String(e)}`); }
+  };
+  const isUri = u => !!(u && typeof u === 'object' && u.scheme && u.fsPath);
+  reg('xpathFolder', reach.wrap(proCmd((arg, expr) => proTools.xpathFolder(isUri(arg) ? arg : undefined, typeof expr === 'string' ? expr : undefined))));
+  reg('formatFolder', reach.wrap(proCmd(arg => proTools.formatFolder(isUri(arg) ? arg : undefined))));
+  reg('compareIgnoringFormat', reach.wrap(proCmd((arg, all) => {
+    const two = Array.isArray(all) && all.length === 2 && all.every(isUri) ? all : null;
+    return two ? proTools.compare(two[0], two[1]) : proTools.compare(isUri(arg) ? arg : undefined);
+  })));
+  reg('xpathFolderFromResults', () => runAs('toolbar', proCmd(() => proTools.xpathFolder(undefined, results.expr || undefined))));
+  pro.onDidChange(() => { if (results.items.some(r => r.pro)) { const n = pro.left('xpathFolder'); for (const r of results.items) if (r.pro) r.description = pro.licensed ? 'Zovo Pro' : `Zovo Pro · ${n === 3 ? '3 free tries' : n === 1 ? '1 try left' : n + ' tries left'}`; results.emitter.fire(); } });
   reg('minify', minifyCommand);
   reg('evaluate', evaluateCommand);
   reg('copyXPath', () => copyXPath());
@@ -580,12 +643,15 @@ function activate(context) {
   reg('formatFileOnDisk', formatFileOnDisk);
   reg('openSample', openSample);
   reg('showTree', async () => { await vscode.commands.executeCommand(`${S}.tree.focus`); });
-  reg('revealElement', async i => {
-    if (!tree.doc || !tree.ix || typeof i !== 'number') return;
+  const elIndex = a => (typeof a === 'number' ? a : a && typeof a.i === 'number' ? a.i : -1);
+  reg('revealElement', async a => {
+    const i = elIndex(a);
+    if (!tree.doc || !tree.ix || i < 0) return;
     await revealRange(tree.doc, nameRange(tree.doc, tree.ix, i));
   });
-  reg('copyElementXPath', async i => {
-    if (!tree.ix || typeof i !== 'number') return;
+  reg('copyElementXPath', async a => {
+    const i = elIndex(a);
+    if (!tree.ix || i < 0) return;
     const p = xpathFor(tree.ix, i, cfg().get('copyXPathStyle', 'indexed'));
     await vscode.env.clipboard.writeText(p);
     vscode.window.setStatusBarMessage(`$(check) Copied XPath: ${shortPath(p, 90)}`, 4000);

@@ -6,6 +6,7 @@ const fs = require('fs');
 const { format } = require('./core/format');
 const { buildIndex } = require('./core/index');
 const { evaluate } = require('./core/evaluate');
+const { canonical } = require('./core/canon');
 
 let state = null; // { key, text, index, dom, ord }
 
@@ -72,6 +73,14 @@ parentPort.on('message', m => {
         reply({ ok: true, changed: r.changed, bytesIn: buf.length, bytesOut: out.length, ms: Date.now() - t0, out: m.out });
         break;
       }
+      case 'xpathText': { // Zovo Pro "XPath on a folder": one file at a time, nothing kept between files
+        const index = buildIndex(m.text);
+        if (index.error) { reply({ ok: false, error: `not well formed at line ${index.error.line}: ${index.error.message}` }); break; }
+        const st = { key: null, text: m.text, index, dom: null, ord: null };
+        reply(evaluate(st, m.expr, m.options || {}));
+        break;
+      }
+      case 'canon': reply(canonical(m.text, m.options || {})); break;
       case 'drop': state = null; reply({ ok: true }); break;
       default: reply({ ok: false, error: 'unknown op ' + m.op });
     }
